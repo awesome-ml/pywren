@@ -141,6 +141,8 @@ class Executor(object):
                          extra_meta, data_byte_range, use_cached_runtime, 
                          host_job_meta, job_max_runtime, 
                          overwrite_invoke_args = None):
+
+        runtime_num_shards = self.config['runtime'].get('num_shards', 1)
     
         arg_dict = {'func_key' : s3_func_key, 
                     'data_key' : s3_data_key, 
@@ -154,7 +156,7 @@ class Executor(object):
                     'runtime_s3_bucket' : self.config['runtime']['s3_bucket'], 
                     'runtime_s3_key' : self.config['runtime']['s3_key'], 
                     'pywren_version' : version.__version__, 
-                    'runtime_num_shards' : self.config['runtime']['num_shards']}
+                    'runtime_num_shards' : runtime_num_shards}
         
         if extra_env is not None:
             logger.debug("Extra environment vars {}".format(extra_env))
