@@ -46,7 +46,7 @@ def default_executor(**kwargs):
         return dummy_executor(**kwargs)
     return lambda_executor(**kwargs)
         
-def lambda_executor(config= None, job_max_runtime=280):
+def lambda_executor(config=None, job_max_runtime=280):
 
     if config is None:
         config = wrenconfig.default()
