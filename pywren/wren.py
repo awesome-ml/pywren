@@ -46,7 +46,7 @@ def default_executor(**kwargs):
         return dummy_executor(**kwargs)
     return lambda_executor(**kwargs)
         
-def lambda_executor(config= None, job_max_runtime=280, shard_runtime=False):
+def lambda_executor(config= None, job_max_runtime=280):
 
     if config is None:
         config = wrenconfig.default()
@@ -58,19 +58,18 @@ def lambda_executor(config= None, job_max_runtime=280, shard_runtime=False):
     
     invoker = invokers.LambdaInvoker(AWS_REGION, FUNCTION_NAME)
     return Executor(AWS_REGION, S3_BUCKET, S3_PREFIX, invoker, config, 
-                    job_max_runtime, shard_runtime=shard_runtime)
+                    job_max_runtime)
 
-def dummy_executor(shard_runtime=False):
+def dummy_executor():
     config = wrenconfig.default()
     AWS_REGION = config['account']['aws_region']
     S3_BUCKET = config['s3']['bucket']
     S3_PREFIX = config['s3']['pywren_prefix']
     invoker = invokers.DummyInvoker()
     return Executor(AWS_REGION, S3_BUCKET, S3_PREFIX, invoker, config, 
-                    100, shard_runtime=shard_runtime)
+                    100)
     
-def remote_executor(config= None, job_max_runtime=3600, 
-                    shard_runtime=False):
+def remote_executor(config= None, job_max_runtime=3600):
     if config is None:
         config = wrenconfig.default()
 
@@ -80,7 +79,7 @@ def remote_executor(config= None, job_max_runtime=3600,
     S3_PREFIX = config['s3']['pywren_prefix']
     invoker = invokers.SQSInvoker(AWS_REGION, SQS_QUEUE)
     return Executor(AWS_REGION, S3_BUCKET, S3_PREFIX, invoker, config, 
-                    job_max_runtime, shard_runtime=shard_runtime)
+                    job_max_runtime)
 
 standalone_executor = remote_executor
 
@@ -90,7 +89,7 @@ class Executor(object):
     """
 
     def __init__(self, aws_region, s3_bucket, s3_prefix, 
-                 invoker, config, job_max_runtime, shard_runtime=False):
+                 invoker, config, job_max_runtime):
         self.aws_region = aws_region
         self.s3_bucket = s3_bucket
         self.s3_prefix = s3_prefix
@@ -100,7 +99,6 @@ class Executor(object):
         self.invoker = invoker
         self.s3client = self.session.create_client('s3', region_name = aws_region)
         self.job_max_runtime = job_max_runtime
-        self.shard_runtime = shard_runtime
 
         runtime_bucket = config['runtime']['s3_bucket']
         runtime_key =  config['runtime']['s3_key']
@@ -156,7 +154,7 @@ class Executor(object):
                     'runtime_s3_bucket' : self.config['runtime']['s3_bucket'], 
                     'runtime_s3_key' : self.config['runtime']['s3_key'], 
                     'pywren_version' : version.__version__, 
-                    'shard_runtime_key' : self.shard_runtime}    
+                    'runtime_num_shards' : self.config['runtime']['num_shards']}
         
         if extra_env is not None:
             logger.debug("Extra environment vars {}".format(extra_env))
